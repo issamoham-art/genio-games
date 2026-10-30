@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Tuckman Card Sort</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Questrial&family=Carlito:wght@400;700&display=swap">
+<style>
+/* Layout: team bar on top, deck tabs, unsorted tray, then five stage columns that stack on phones */
+:root{
+  --bg:#F4F7FB; --surface:#FFFFFF; --ink:#0F1E3A; --muted:#5A6782; --line:#D5DDEA;
+  --blue:#0070C0; --navy:#002060; --gold:#FBAE40; --orange:#F26B43; --slate:#5B7A8C;
+  --ok:#1E8E4E; --ok-bg:#E3F4EA; --bad:#C0392B; --bad-bg:#FBE6E3;
+  --card:#FFFFFF; --card-ink:#0F1E3A; --sel:#0070C0;
+  --display:"Century Gothic","Questrial","Avenir Next",sans-serif;
+  --body:"Calibri","Carlito","Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0B1324; --surface:#121D33; --ink:#E8EEF8; --muted:#9AA8C2; --line:#24324F;
+  --blue:#3A9BE0; --navy:#5D7FC9; --gold:#FBAE40; --orange:#F37E5B; --slate:#86A3B4;
+  --ok:#4CC27F; --ok-bg:#12321F; --bad:#F07264; --bad-bg:#3A1A17;
+  --card:#1A2742; --card-ink:#E8EEF8; --sel:#5DB2F0; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0B1324; --surface:#121D33; --ink:#E8EEF8; --muted:#9AA8C2; --line:#24324F;
+  --blue:#3A9BE0; --navy:#5D7FC9; --gold:#FBAE40; --orange:#F37E5B; --slate:#86A3B4;
+  --ok:#4CC27F; --ok-bg:#12321F; --bad:#F07264; --bad-bg:#3A1A17;
+  --card:#1A2742; --card-ink:#E8EEF8; --sel:#5DB2F0; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.35;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:16px 40px}
+.wrap{max-width:1280px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+header.top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px}
+.brand{display:flex;flex-direction:column;gap:2px}
+.brand small{font-family:var(--display);letter-spacing:.12em;text-transform:uppercase;color:var(--blue);font-size:11px}
+h1{font-family:var(--display);font-weight:400;font-size:26px;margin:0;color:var(--ink);text-wrap:balance}
+.teambox{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.teambox label{font-size:13px;color:var(--muted)}
+input#team{font:inherit;padding:7px 10px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink);width:150px}
+.timer{display:flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:4px 6px 4px 12px}
+.timer output{font-family:var(--display);font-size:22px;font-variant-numeric:tabular-nums;min-width:62px;color:var(--ink)}
+.timer output.low{color:var(--orange)}
+button{font:inherit;cursor:pointer;border-radius:6px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:7px 12px}
+button:hover{border-color:var(--blue)}
+button:focus-visible,.card:focus-visible,.zone:focus-visible{outline:3px solid var(--sel);outline-offset:2px}
+button.primary{background:var(--blue);border-color:var(--blue);color:#fff}
+button.primary:hover{filter:brightness(1.08)}
+button.small{padding:4px 9px;font-size:13px}
+button[disabled]{opacity:.45;cursor:not-allowed}
+nav.decks{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+nav.decks button{text-align:left;display:flex;flex-direction:column;gap:2px;padding:9px 12px;border-width:2px}
+nav.decks button .r{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+nav.decks button .n{font-family:var(--display);font-size:16px}
+nav.decks button .s{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+nav.decks button[aria-current="true"]{border-color:var(--blue);background:var(--surface);box-shadow:0 0 0 1px var(--blue) inset}
+.howto{color:var(--muted);font-size:14px;margin:0}
+.tray{background:var(--surface);border:1px dashed var(--line);border-radius:10px;padding:10px;min-height:70px}
+.tray h2,.col h2{font-family:var(--display);font-weight:400;margin:0;font-size:15px}
+.tray header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px;flex-wrap:wrap}
+.tray .cards{display:flex;flex-wrap:wrap;gap:8px}
+.tray .card{flex:0 1 auto}
+.board{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.col{background:var(--surface);border:1px solid var(--line);border-radius:10px;display:flex;flex-direction:column;min-width:0;overflow:hidden}
+.col h2{color:#fff;padding:9px 10px;display:flex;justify-content:space-between;align-items:baseline;gap:6px}
+.col h2 span{font-family:var(--body);font-size:12px;opacity:.9;font-variant-numeric:tabular-nums}
+.col[data-s="0"] h2{background:var(--blue)} .col[data-s="1"] h2{background:var(--orange)}
+.col[data-s="2"] h2{background:var(--gold);color:#2A1A00} .col[data-s="3"] h2{background:var(--navy)}
+.col[data-s="4"] h2{background:var(--slate)}
+.zone{flex:1;display:flex;flex-direction:row;flex-wrap:wrap;align-content:flex-start;gap:5px;padding:6px;min-height:120px;transition:background .15s}
+.zone.over,.zone.target{background:color-mix(in srgb,var(--blue) 10%,transparent)}
+.tray .zone{min-height:0;padding:0}
+.card{position:relative;max-width:100%;background:var(--card);color:var(--card-ink);border:1px solid var(--line);border-left:3px solid var(--muted);
+  border-radius:5px;padding:4px 8px;font-size:13px;line-height:1.25;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;
+  box-shadow:0 1px 2px rgba(0,0,0,.06)}
+.card.sel{border-color:var(--sel);box-shadow:0 0 0 2px var(--sel)}
+.card.dragging{opacity:.35}
+.card.ok{background:var(--ok-bg);border-left-color:var(--ok)}
+.card.bad{background:var(--bad-bg);border-left-color:var(--bad)}
+.card .mark{display:block;font-size:11px;margin-top:1px;font-weight:700}
+.stagebar{position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--surface);border-top:1px solid var(--line);box-shadow:0 -4px 14px rgba(0,0,0,.12);
+  padding:8px max(10px,env(safe-area-inset-right,0px)) calc(8px + env(safe-area-inset-bottom,0px)) max(10px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:6px}
+.stagebar p{margin:0;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stagebar .btns{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:5px}
+.stagebar button{padding:9px 2px;font-size:12px;color:#fff;border:0;font-weight:700}
+.stagebar button[data-s="0"]{background:var(--blue)} .stagebar button[data-s="1"]{background:var(--orange)} .stagebar button[data-s="2"]{background:var(--gold);color:#2A1A00}
+.stagebar button[data-s="3"]{background:var(--navy)} .stagebar button[data-s="4"]{background:var(--slate)} .stagebar button[data-s="tray"]{background:var(--surface);color:var(--ink);border:1px solid var(--line)}
+body.picking{padding-bottom:110px}
+.stagebar[hidden],[hidden]{display:none!important}
+.card.ok .mark{color:var(--ok)} .card.bad .mark{color:var(--bad)}
+.card.moved{border-left-style:dashed}
+.ghost{position:fixed;pointer-events:none;z-index:50;transform:rotate(-2deg);box-shadow:0 8px 20px rgba(0,0,0,.25);opacity:.95}
+.actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.result{font-family:var(--display);font-size:18px}
+.result b{font-variant-numeric:tabular-nums}
+.result.pass{color:var(--ok)} .result.fail{color:var(--orange)}
+.score{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 14px;display:flex;flex-wrap:wrap;gap:6px 22px;align-items:baseline}
+.score b{font-variant-numeric:tabular-nums}
+.score .tot{font-family:var(--display);font-size:18px;margin-left:auto}
+footer{color:var(--muted);font-size:12px}
+@media (max-width:900px){.board{grid-template-columns:repeat(2,minmax(0,1fr))} nav.decks{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:520px){body{padding-block:10px 30px} .wrap{gap:10px} .board{grid-template-columns:1fr;gap:6px} .zone{min-height:38px} .col h2{padding:6px 10px;font-size:14px}
+  h1{font-size:20px} .howto{font-size:13px} nav.decks{gap:6px} nav.decks button{padding:6px 8px} nav.decks button .n{font-size:14px}
+  .timer output{font-size:18px;min-width:52px} input#team{width:120px} .card{font-size:12.5px;padding:4px 7px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+</head><body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand"><small>Genio Talent Development</small><h1>Tuckman Card Sort</h1></div>
+    <div class="teambox">
+      <label for="team">Team</label><input id="team" placeholder="Team name" maxlength="24">
+      <div class="timer" aria-label="Round timer">
+        <output id="clock">12:00</output>
+        <button class="small" id="tStart">Start</button>
+        <button class="small" id="tReset" title="Reset timer">Reset</button>
+        <select id="tLen" aria-label="Timer length" class="small" style="font:inherit;font-size:13px;padding:4px;border-radius:6px;border:1px solid var(--line);background:var(--surface);color:var(--ink)">
+          <option value="6">6 min</option><option value="10">10 min</option><option value="12" selected>12 min</option><option value="15">15 min</option>
+        </select>
+      </div>
+    </div>
+  </header>
+
+  <nav class="decks" id="decks" aria-label="Card decks"></nav>
+  <p class="howto">Drag each card to the stage where it belongs. On a phone or tablet, tap a card, then tap a stage. When the team agrees, press Check answers.</p>
+
+  <section class="tray" aria-label="Unsorted cards">
+    <header><h2 id="trayTitle">Cards to sort</h2>
+      <div class="actions">
+        <span class="result" id="result" aria-live="polite"></span>
+        <button class="primary" id="check">Check answers</button>
+        <button id="fix" hidden>Show correct stages</button>
+        <button id="again">Reset deck</button>
+      </div>
+    </header>
+    <div class="zone cards" id="tray" data-zone="tray" tabindex="0"></div>
+  </section>
+
+  <section class="board" id="board" aria-label="Tuckman stages"></section>
+
+  <section class="score" id="score" aria-label="Team score"></section>
+  <div class="stagebar" id="stagebar" hidden><p id="pickText">Place card in:</p><div class="btns">
+    <button data-s="0">Forming</button><button data-s="1">Storming</button><button data-s="2">Norming</button><button data-s="3">Perform.</button><button data-s="4">Adjourn.</button><button data-s="tray">Unplace</button></div></div>
+  <footer>Pass mark: 80% of cards on the right stage. Scores stay on this device only.</footer>
+</div>
+
+<script>
+const STAGES=["Forming","Storming","Norming","Performing","Adjourning"];
+const RAW={
+ behaviour:{name:"Behaviour",round:"Round 1",cards:[
+  ["Respect in behaviour and responses","Avoid arguments","Groups may appear","Attempts to define tasks and procedures","Discussing problems not related to tasks"],
+  ["Arguments between members","Differences of opinion emerge","Clashes and struggles for authority","There is no progress","Setting unrealistic goals"],
+  ["Agree on steps and procedures","More comfort in relationships","Honest attempts to make decisions by agreement","Develop a team routine","Agree on the main project phases"],
+  ["The team is working at full capacity","The roles are clear","More organisation inside the team","Members work well individually and collectively","Better understanding of every member's strengths and weaknesses"],
+  ["Clear signs of sadness","Lack of enthusiasm","Celebration or farewell","Expressing gratitude","Preparing for future collaboration"]]},
+ feelings:{name:"Feelings & Thoughts",round:"Round 1",cards:[
+  ["Many people feel excited and optimistic","Others feel doubt, fear and anxiety","Some people ask: what is expected of me?","Desire for acceptance","Dependency on the leader"],
+  ["Increased stress and jealousy","Unsure about my alignment with the team's purpose","Questioning team members","The feeling of not getting anywhere","Feeling frustrated"],
+  ["Feeling of belonging to the team","High confidence","Start accepting all team members","Freedom of expression and participation","Improved communication"],
+  ["Lots of personal development and creativity","High commitment","Begin to understand the ethics of teamwork","Strong connections emerge","Fun and general enthusiasm"],
+  ["Happiness at completing the task","Maintaining relationships","Sadness"]]},
+ needs:{name:"Team Needs",round:"Round 2",cards:[
+  ["A strong leader","Structure for the team and clearly defined tasks","Time for the team to get to know each other","An atmosphere of confidence and optimism","All team members feel safe"],
+  ["The leader acknowledges the conflict and gives support","The leader creates harmony among members","Team members take on more tasks","Shared leadership starts to emerge","Learn ways to resolve conflicts"],
+  ["Constructive feedback","Stronger team interaction","Participation from all members","Others are encouraged to make decisions","Keep building strong relationships"],
+  ["Members understand the tasks","Efficient cooperation among all members","Sharing new information","Continuous encouragement to complete tasks"],
+  ["Support with options for career advancement","Use the lessons learned in the next project","Feedback and evaluation"]]},
+ leader:{name:"Leader's Role",round:"Round 2",cards:[
+  ["Set a structure for the team: mission, vision, goals and tasks","Define roles and responsibilities","Establish ground rules","Hold many effective meetings","Understand members' expectations"],
+  ["Build personal relationships with the team","Active listening and conflict resolution","Clarify the team's goal","Deal with members who break the rules","Provide support and guidance"],
+  ["Develop the decision making process","Offer ideas and suggestions","Encourage collaboration","Use all resources to support team efforts"],
+  ["Keep the team moving in the direction of cooperation","Maintain flexibility between members","Measure performance","Give continuous feedback"],
+  ["Evaluate team results","Appreciate and reward the team's efforts","Prepare for the next projects"]]}
+};
+const DECKS=Object.entries(RAW).map(([key,d])=>{
+  const cards=[];d.cards.forEach((list,s)=>list.forEach((t,i)=>cards.push({id:key+"-"+s+"-"+i,text:t,stage:s})));
+  return {key,name:d.name,round:d.round,cards};
+});
+const $=s=>document.querySelector(s);
+let S=null;
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function freshDeck(d){return {order:shuffle(d.cards.map(c=>c.id)),place:{},checked:false,fixed:false,score:null}}
+function newState(){const decks={};DECKS.forEach(d=>decks[d.key]=freshDeck(d));return {team:"",active:DECKS[0].key,decks,timer:{len:12,left:720,running:false}}}
+function save(){try{localStorage.setItem("tuckman-sort",JSON.stringify(S))}catch(e){}}
+function load(){try{const v=JSON.parse(localStorage.getItem("tuckman-sort"));if(v&&v.decks&&DECKS.every(d=>v.decks[d.key]))return v}catch(e){}return null}
+let selected=null;
+const deckOf=k=>DECKS.find(d=>d.key===k);
+const byId=id=>{for(const d of DECKS){const c=d.cards.find(c=>c.id===id);if(c)return c}};
+
+function renderTabs(){
+  $("#decks").innerHTML=DECKS.map(d=>{const st=S.decks[d.key];
+    const s=st.score==null?"Not checked":`${st.score} of ${d.cards.length}`;
+    return `<button data-k="${d.key}" aria-current="${d.key===S.active}"><span class="r">${d.round}</span><span class="n">${d.name}</span><span class="s">${s}</span></button>`}).join("");
+}
+function cardHTML(c,st){
+  let cls="card",mark="";
+  if(st.checked&&st.place[c.id]!=null){const ok=st.place[c.id]===c.stage;cls+=ok?" ok":" bad";
+    mark=ok?`<span class="mark">✓</span>`:`<span class="mark">✗ ${STAGES[c.stage]}</span>`}
+  if(st.fixed&&st.moved&&st.moved.includes(c.id)){cls+=" bad moved";mark=`<span class="mark">✗ moved here</span>`}
+  if(selected===c.id)cls+=" sel";
+  return `<div class="${cls}" tabindex="0" role="button" data-id="${c.id}" aria-label="${c.text}">${c.text}${mark}</div>`;
+}
+function render(){
+  const d=deckOf(S.active),st=S.decks[S.active];
+  renderTabs();
+  $("#team").value=S.team||"";
+  const unplaced=st.order.filter(id=>st.place[id]==null);
+  $("#trayTitle").textContent=unplaced.length?`${d.name}: ${unplaced.length} cards to sort`:`${d.name}: all cards placed`;
+  $("#tray").innerHTML=unplaced.map(id=>cardHTML(byId(id),st)).join("");
+  $("#board").innerHTML=STAGES.map((n,s)=>{const ids=st.order.filter(id=>st.place[id]===s);
+    return `<div class="col" data-s="${s}"><h2>${n}<span>${ids.length}</span></h2><div class="zone" data-zone="${s}" tabindex="0" aria-label="${n}">${ids.map(id=>cardHTML(byId(id),st)).join("")}</div></div>`}).join("");
+  const r=$("#result");
+  if(st.score!=null){const pct=Math.round(st.score/d.cards.length*100);r.innerHTML=`Score <b>${st.score}/${d.cards.length}</b> (${pct}%)`;r.className="result "+(pct>=80?"pass":"fail")}
+  else{r.textContent="";r.className="result"}
+  $("#check").disabled=st.checked;
+  $("#fix").hidden=!st.checked||st.fixed||st.score===d.cards.length;
+  renderScore();
+}
+function renderScore(){
+  const parts=DECKS.map(d=>{const st=S.decks[d.key];return `<span>${d.name}: <b>${st.score==null?"–":st.score+"/"+d.cards.length}</b></span>`});
+  const done=DECKS.filter(d=>S.decks[d.key].score!=null);
+  const tot=done.reduce((a,d)=>a+S.decks[d.key].score,0),max=done.reduce((a,d)=>a+d.cards.length,0);
+  $("#score").innerHTML=`<span><b>${(S.team||"This team")}</b></span>`+parts.join("")+`<span class="tot">Total <b>${tot}/${max||0}</b></span>`;
+}
+function place(id,zone){
+  const st=S.decks[S.active];if(st.checked)return;
+  if(zone==="tray")delete st.place[id];else st.place[id]=+zone;
+  selected=null;save();render();markTargets();
+}
+// Check
+$("#check").onclick=()=>{const d=deckOf(S.active),st=S.decks[S.active];
+  st.checked=true;st.score=d.cards.filter(c=>st.place[c.id]===c.stage).length;save();render()};
+$("#fix").onclick=()=>{const d=deckOf(S.active),st=S.decks[S.active];st.moved=[];
+  d.cards.forEach(c=>{if(st.place[c.id]!==c.stage){st.moved.push(c.id);st.place[c.id]=c.stage}});
+  st.fixed=true;save();render()};
+let confirmReset=false,resetTimer;
+$("#again").onclick=e=>{const b=e.currentTarget;
+  if(!confirmReset){confirmReset=true;b.textContent="Press again to reset";clearTimeout(resetTimer);resetTimer=setTimeout(()=>{confirmReset=false;b.textContent="Reset deck"},3000);return}
+  confirmReset=false;b.textContent="Reset deck";S.decks[S.active]=freshDeck(deckOf(S.active));selected=null;save();render()};
+$("#decks").onclick=e=>{const b=e.target.closest("button[data-k]");if(!b)return;S.active=b.dataset.k;selected=null;save();render()};
+$("#team").oninput=e=>{S.team=e.target.value;save();renderScore()};
+
+// Drag (pointer events) and tap-to-place
+let drag=null;
+document.addEventListener("pointerdown",e=>{
+  const c=e.target.closest(".card");if(!c||S.decks[S.active].checked)return;
+  drag={id:c.dataset.id,el:c,x:e.clientX,y:e.clientY,moved:false,ghost:null};
+  c.setPointerCapture?.(e.pointerId);
+});
+document.addEventListener("pointermove",e=>{
+  if(!drag)return;
+  if(!drag.moved&&Math.hypot(e.clientX-drag.x,e.clientY-drag.y)<6)return;
+  if(!drag.moved){drag.moved=true;const r=drag.el.getBoundingClientRect();
+    const g=drag.el.cloneNode(true);g.classList.add("ghost");g.style.width=r.width+"px";document.body.appendChild(g);
+    drag.ghost=g;drag.dx=e.clientX-r.left;drag.dy=e.clientY-r.top;drag.el.classList.add("dragging")}
+  drag.ghost.style.left=(e.clientX-drag.dx)+"px";drag.ghost.style.top=(e.clientY-drag.dy)+"px";
+  document.querySelectorAll(".zone.over").forEach(z=>z.classList.remove("over"));
+  const z=document.elementFromPoint(e.clientX,e.clientY)?.closest(".zone");if(z)z.classList.add("over");
+});
+function endDrag(e,cancel){
+  if(!drag)return;const d=drag;drag=null;
+  document.querySelectorAll(".zone.over").forEach(z=>z.classList.remove("over"));
+  if(d.ghost)d.ghost.remove();d.el.classList.remove("dragging");
+  if(cancel)return;
+  if(d.moved){const z=document.elementFromPoint(e.clientX,e.clientY)?.closest(".zone");if(z)place(d.id,z.dataset.zone);else render()}
+  else{selected=selected===d.id?null:d.id;render();markTargets()}
+}
+document.addEventListener("pointerup",e=>endDrag(e,false));
+document.addEventListener("pointercancel",e=>endDrag(e,true));
+function markTargets(){document.querySelectorAll(".zone").forEach(z=>z.classList.toggle("target",!!selected));
+  const bar=$("#stagebar");bar.hidden=!selected;document.body.classList.toggle("picking",!!selected);
+  if(selected)$("#pickText").textContent="Place: "+byId(selected).text}
+$("#stagebar").addEventListener("click",e=>{const b=e.target.closest("button[data-s]");if(!b||!selected)return;e.stopPropagation();place(selected,b.dataset.s)});
+document.addEventListener("click",e=>{
+  if(!selected)return;const z=e.target.closest(".zone");if(!z||e.target.closest(".card"))return;place(selected,z.dataset.zone);
+});
+document.addEventListener("keydown",e=>{
+  if(e.key!=="Enter"&&e.key!==" ")return;
+  const c=e.target.closest?.(".card");const z=e.target.closest?.(".zone");
+  if(c&&!S.decks[S.active].checked){e.preventDefault();selected=selected===c.dataset.id?null:c.dataset.id;render();markTargets();
+    document.querySelector(`.card[data-id="${CSS.escape(c.dataset.id)}"]`)?.focus()}
+  else if(z&&selected&&!c){e.preventDefault();place(selected,z.dataset.zone)}
+});
+
+// Timer
+let tick=null;
+function fmt(s){return String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0")}
+function drawClock(){const o=$("#clock");o.textContent=fmt(S.timer.left);o.classList.toggle("low",S.timer.left<=60);$("#tStart").textContent=S.timer.running?"Pause":(S.timer.left<S.timer.len*60&&S.timer.left>0?"Resume":"Start");$("#tLen").value=String(S.timer.len)}
+function run(){clearInterval(tick);if(!S.timer.running)return;tick=setInterval(()=>{S.timer.left=Math.max(0,S.timer.left-1);if(!S.timer.left)S.timer.running=false;drawClock();if(!S.timer.running)clearInterval(tick)},1000)}
+$("#tStart").onclick=()=>{if(!S.timer.left)S.timer.left=S.timer.len*60;S.timer.running=!S.timer.running;drawClock();run();save()};
+$("#tReset").onclick=()=>{S.timer.running=false;S.timer.left=S.timer.len*60;clearInterval(tick);drawClock();save()};
+$("#tLen").onchange=e=>{S.timer.len=+e.target.value;S.timer.running=false;S.timer.left=S.timer.len*60;clearInterval(tick);drawClock();save()};
+
+function start(data){S=(data&&data.S)||load()||newState();S.timer.running=false;render();drawClock()}
+window.claude?.hot?.snapshot?.(()=>({S}));
+window.claude?.hot?.ready?window.claude.hot.ready(start):start(window.claude?.hot?.data??{});
+</script>
+
+</body></html>
